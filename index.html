@@ -1,52 +1,89 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>MQTT Test for 2270056 이설하</title>
+  <meta charset="utf-8" />
+  <title>나의 웹 (2270056, 이설하)</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 30px;
     }
-    h1 {
-      color: #4CAF50;
+    h3 {
+      margin-bottom: 10px;
     }
-    #box {
-      margin-top: 20px;
+    #info {
+      margin-bottom: 20px;
+    }
+    #main {
       padding: 20px;
-      background: #f5f5f5;
       border-radius: 10px;
+      background: #f5f5f5;
+      min-height: 60px;
       font-size: 20px;
-      width: 60%;
     }
   </style>
+
+  <script>
+    // ---- ① 브로커/토픽 설정 ----
+    const brokerUrl = "wss://damoa.io:9002";
+    const topic = "ewha/2270056";
+
+    // ---- ② 클라이언트 ID 생성 ----
+    const clientId = "iot-client-" + Math.random().toString(16).substr(2, 8);
+    const options = { clientId };
+
+    console.log(`MQTT 브로커(${brokerUrl})에 접속 시도...`);
+    const client = mqtt.connect(brokerUrl, options);
+
+    // 접속 성공
+    client.on("connect", () => {
+      console.log(`✅ 접속 성공! (clientId: ${clientId})`);
+
+      // 토픽 구독
+      client.subscribe(topic, (err) => {
+        if (!err) {
+          console.log(`📄 토픽 구독 성공: ${topic}`);
+
+          // 출석 용 checkin 메시지 (필요 없으면 주석 처리해도 됨)
+          client.publish("ewha/checkin", "2270056 이설하");
+        } else {
+          console.error("토픽 구독 오류:", err);
+        }
+      });
+    });
+
+    // 메시지 수신
+    client.on("message", (topic, message) => {
+      console.log(`${topic} ${message.toString()}`);
+
+      const mainDiv = document.getElementById("main");
+      mainDiv.innerHTML = `
+        <div class="message-item">
+          <b>받은 메시지:</b> ${message.toString()}
+        </div>
+      `;
+      mainDiv.scrollTop = mainDiv.scrollHeight;
+    });
+
+    // 에러 처리
+    client.on("error", (err) => {
+      console.error("연결 오류:", err);
+      client.end();
+    });
+  </script>
 </head>
 
 <body>
-  <h1>MQTT 메시지 표시 페이지</h1>
-  <p>Broker: <b>damoa.io</b></p>
-  <p>Topic: <b>ewha/2270056</b></p>
-
-  <div id="box">
-    <b>받은 메시지:</b>
-    <div id="mqtt-message">⏳ 메시지 기다리는 중...</div>
+  <h3>나의 웹 (2270056, 이설하)</h3>
+  <div id="info">
+    브로커: <b>damoa.io</b><br />
+    구독 토픽: <b>ewha/2270056</b><br />
+    전송 메시지 예: <code>2270056 이설하</code>
   </div>
 
-  <script>
-    // MQTT WebSocket 연결 정보
-    const client = mqtt.connect("wss://damoa.io:8084/mqtt");
-
-    client.on("connect", function () {
-      console.log("MQTT Connected!");
-      client.subscribe("ewha/2270056");
-    });
-
-    client.on("message", function (topic, message) {
-      document.getElementById("mqtt-message").innerText =
-        message.toString();
-    });
-  </script>
+  <div id="main">
+    ⏳ MQTT 메시지 기다리는 중...
+  </div>
 </body>
 </html>
