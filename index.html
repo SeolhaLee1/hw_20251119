@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>MQTT Test for 2270056 이설하</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+    h1 {
+      color: #4CAF50;
+    }
+    #box {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      font-size: 20px;
+      width: 60%;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>MQTT 메시지 표시 페이지</h1>
+  <p>Broker: <b>damoa.io</b></p>
+  <p>Topic: <b>ewha/2270056</b></p>
+
+  <div id="box">
+    <b>받은 메시지:</b>
+    <div id="mqtt-message">⏳ 메시지 기다리는 중...</div>
+  </div>
+
+  <script>
+    // MQTT WebSocket 연결 정보
+    const client = mqtt.connect("wss://damoa.io:8084/mqtt");
+
+    client.on("connect", function () {
+      console.log("MQTT Connected!");
+      client.subscribe("ewha/2270056");
+    });
+
+    client.on("message", function (topic, message) {
+      document.getElementById("mqtt-message").innerText =
+        message.toString();
+    });
+  </script>
+</body>
+</html>
